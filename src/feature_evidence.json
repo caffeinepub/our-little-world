@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-internet-identity-authentication-system-and-all-login-logout-ui-components",
-      "featureTitle": "Remove Internet Identity authentication system and all login/logout UI components",
+      "featureId": "feature-display-takshi-and-aashi-as-sender-names-in-chat-messages-instead-of-unknown-when-a-message-has-no-senderid-or-the-senderid-cannot-be-resolved-to-a-profile-display-the-appropriate-name-based-on-the-sender-s-identity-takshi-or-aashi",
+      "featureTitle": "Display 'Takshi' and 'Aashi' as sender names in chat messages instead of 'unknown'. When a message has no senderId or the senderId cannot be resolved to a profile, display the appropriate name based on the sender's identity (Takshi or Aashi).",
       "files": [
-        "frontend/src/components/AppShell.tsx",
-        "frontend/src/components/LoginButton.tsx"
+        "frontend/src/components/chat/ChatMessageItem.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -23,11 +22,36 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-profilesetupmodal-to-automatically-prompt-for-name-when-a-new-ip-address-is-detected-without-requiring-explicit-login",
-      "featureTitle": "Update ProfileSetupModal to automatically prompt for name when a new IP address is detected, without requiring explicit login",
+      "featureId": "feature-apply-the-takshi-and-aashi-sender-name-display-logic-consistently-across-all-apps-in-the-project-chatpage-dailycheckinpage-reactionspage-and-any-other-pages-that-display-user-generated-content",
+      "featureTitle": "Apply the 'Takshi' and 'Aashi' sender name display logic consistently across all apps in the project (ChatPage, DailyCheckInPage, ReactionsPage, and any other pages that display user-generated content).",
       "files": [
-        "frontend/src/components/ProfileSetupModal.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/pages/DailyCheckInPage.tsx",
+        "frontend/src/pages/DailyNotesPage.tsx",
+        "frontend/src/pages/DoodlesPage.tsx",
+        "frontend/src/pages/MemoryWallPage.tsx",
+        "frontend/src/pages/ReactionsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-restrict-admin-panel-access-exclusively-to-the-user-takshi-only-takshi-should-be-able-to-access-the-admin-panel-page-and-see-the-admin-panel-navigation-option",
+      "featureTitle": "Restrict admin panel access exclusively to the user 'takshi'. Only Takshi should be able to access the admin panel page and see the admin panel navigation option.",
+      "files": [
+        "frontend/src/components/AppShell.tsx",
+        "frontend/src/pages/AdminPanelPage.tsx",
+        "frontend/src/pages/HomePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -44,13 +68,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-replace-principal-based-user-identification-throughout-the-application-with-ip-based-identification",
-      "featureTitle": "Replace Principal-based user identification throughout the application with IP-based identification",
+      "featureId": "feature-implement-automatic-daily-question-generation-or-scheduling-to-ensure-a-new-question-appears-every-day-the-system-should-either-automatically-create-new-questions-or-ensure-that-scheduled-questions-appear-daily-without-manual-intervention",
+      "featureTitle": "Implement automatic daily question generation or scheduling to ensure a new question appears every day. The system should either automatically create new questions or ensure that scheduled questions appear daily without manual intervention.",
       "files": [
-        "frontend/src/components/AppShell.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/ChatPage.tsx",
-        "frontend/src/pages/DailyNotesPage.tsx"
+        "frontend/src/pages/AdminPanelPage.tsx",
+        "frontend/src/pages/DailyCheckInPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",

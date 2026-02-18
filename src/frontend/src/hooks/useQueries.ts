@@ -7,6 +7,23 @@ import type { Principal } from '@icp-sdk/core/principal';
 // Polling defaults
 const POLLING_INTERVAL = 3000; // 3 seconds for near-real-time feel
 
+// Helper to parse backend error messages
+function parseBackendError(error: any): string {
+  const errorMessage = error?.message || String(error);
+  
+  // Check for authorization errors
+  if (errorMessage.includes('Unauthorized: Only users can')) {
+    return 'Unable to perform this action. Please ensure you are logged in with a valid account and have completed your profile setup.';
+  }
+  
+  if (errorMessage.includes('Unauthorized')) {
+    return 'You do not have permission to perform this action.';
+  }
+  
+  // Return original message for other errors
+  return errorMessage;
+}
+
 // User Profile
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -54,6 +71,9 @@ export function useSaveCallerUserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     },
+    onError: (error) => {
+      throw new Error(parseBackendError(error));
+    },
   });
 }
 
@@ -94,7 +114,11 @@ export function useSendMessage() {
   return useMutation({
     mutationFn: async ({ content, messageType }: { content: string; messageType: MessageType }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.sendMessage(content, messageType);
+      try {
+        return await actor.sendMessage(content, messageType);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages'] });
@@ -124,7 +148,11 @@ export function useSaveDrawing() {
   return useMutation({
     mutationFn: async (drawingData: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveDrawing(drawingData);
+      try {
+        return await actor.saveDrawing(drawingData);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drawings'] });
@@ -154,7 +182,11 @@ export function useSaveNote() {
   return useMutation({
     mutationFn: async ({ content, date }: { content: string; date: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveNote(content, date);
+      try {
+        return await actor.saveNote(content, date);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
@@ -169,7 +201,11 @@ export function useUpdateNote() {
   return useMutation({
     mutationFn: async ({ noteId, content }: { noteId: string; content: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateNote(noteId, content);
+      try {
+        return await actor.updateNote(noteId, content);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
@@ -199,7 +235,11 @@ export function useSaveMemory() {
   return useMutation({
     mutationFn: async ({ photo, caption }: { photo: ExternalBlob; caption: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveMemory(photo, caption);
+      try {
+        return await actor.saveMemory(photo, caption);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['memories'] });
@@ -243,7 +283,11 @@ export function useAddReaction() {
   return useMutation({
     mutationFn: async (reactionType: ReactionType) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addReaction(reactionType);
+      try {
+        return await actor.addReaction(reactionType);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reactionCounts'] });
@@ -288,7 +332,11 @@ export function useSubmitDailyAnswer() {
   return useMutation({
     mutationFn: async ({ answer, questionId }: { answer: string; questionId: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.submitDailyAnswer(answer, questionId);
+      try {
+        return await actor.submitDailyAnswer(answer, questionId);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['answers', variables.questionId] });
@@ -332,7 +380,11 @@ export function useCreateScheduledQuestion() {
   return useMutation({
     mutationFn: async ({ question, date }: { question: string; date: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addDailyQuestion(question, date);
+      try {
+        return await actor.addDailyQuestion(question, date);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduledQuestions'] });
@@ -348,7 +400,11 @@ export function useUpdateScheduledQuestion() {
   return useMutation({
     mutationFn: async ({ questionId, question, date }: { questionId: string; question: string; date: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateDailyQuestion(questionId, question, date);
+      try {
+        return await actor.updateDailyQuestion(questionId, question, date);
+      } catch (error: any) {
+        throw new Error(parseBackendError(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduledQuestions'] });

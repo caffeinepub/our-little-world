@@ -8,7 +8,21 @@ interface ChatMessageItemProps {
 }
 
 export default function ChatMessageItem({ message, isOwn, senderProfile }: ChatMessageItemProps) {
-  const displayName = senderProfile?.displayName || 'Unknown';
+  // Get display name from profile or fall back to localStorage identity
+  const getDisplayName = () => {
+    if (senderProfile?.displayName) {
+      return senderProfile.displayName;
+    }
+    
+    // Fall back to localStorage identity
+    const identity = localStorage.getItem('selectedIdentity');
+    if (identity === 'takshi') return 'Takshi';
+    if (identity === 'aashi') return 'Aashi';
+    
+    return 'Unknown';
+  };
+
+  const displayName = getDisplayName();
   const initials = displayName.substring(0, 2).toUpperCase();
   const timestamp = new Date(Number(message.timestamp) / 1000000);
 

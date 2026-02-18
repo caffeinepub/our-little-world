@@ -107,6 +107,14 @@ export default function DoodlesPage() {
     }
   };
 
+  // Helper to get display name from localStorage
+  const getDisplayName = () => {
+    const identity = localStorage.getItem('selectedIdentity');
+    if (identity === 'takshi') return 'Takshi';
+    if (identity === 'aashi') return 'Aashi';
+    return 'Artist';
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       <div className="grid lg:grid-cols-2 gap-6">
@@ -205,9 +213,14 @@ export default function DoodlesPage() {
                     alt="Drawing"
                     className="w-full rounded-lg mb-2"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(Number(drawing.timestamp) / 1000000), { addSuffix: true })}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">
+                      By {getDisplayName()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(Number(drawing.timestamp) / 1000000), { addSuffix: true })}
+                    </p>
+                  </div>
                 </div>
               ))
             )}

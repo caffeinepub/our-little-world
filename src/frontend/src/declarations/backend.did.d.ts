@@ -41,7 +41,7 @@ export interface Message {
   'content' : string,
   'messageType' : MessageType,
   'timestamp' : Time,
-  'senderId' : Principal,
+  'senderId' : [] | [Principal],
 }
 export type MessageType = { 'text' : null } |
   { 'emoji' : string } |
@@ -101,6 +101,7 @@ export interface _SERVICE {
   'getAllMessages' : ActorMethod<[], Array<Message>>,
   'getAllNotes' : ActorMethod<[], Array<Note>>,
   'getAllQuestions' : ActorMethod<[], Array<DailyCheckInQuestion>>,
+  'getAllScheduledQuestions' : ActorMethod<[], Array<DailyCheckInQuestion>>,
   'getAnsweredDays' : ActorMethod<[], Array<string>>,
   'getAnswersForQuestion' : ActorMethod<
     [string],
@@ -124,6 +125,7 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'hasSubmittedAnswer' : ActorMethod<[string], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'regenerateTodaysQuestion' : ActorMethod<[], [] | [DailyCheckInQuestion]>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'saveDrawing' : ActorMethod<[string], string>,
   'saveMemory' : ActorMethod<[ExternalBlob, string], string>,

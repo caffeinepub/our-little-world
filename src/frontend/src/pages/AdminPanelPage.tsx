@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGetAllScheduledQuestions, useCreateScheduledQuestion, useUpdateScheduledQuestion } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, Plus, Edit2, Save, X } from 'lucide-react';
+import { Calendar, Plus, Edit2, Save, X, Shield, AlertCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import type { DailyCheckInQuestion } from '../backend';
@@ -15,10 +15,38 @@ export default function AdminPanelPage() {
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [questionText, setQuestionText] = useState('');
   const [editingQuestion, setEditingQuestion] = useState<DailyCheckInQuestion | null>(null);
+  const [selectedIdentity, setSelectedIdentity] = useState<string | null>(null);
 
   const { data: scheduledQuestions = [], isLoading } = useGetAllScheduledQuestions();
   const createQuestion = useCreateScheduledQuestion();
   const updateQuestion = useUpdateScheduledQuestion();
+
+  // Check selected identity on mount
+  useEffect(() => {
+    const identity = localStorage.getItem('selectedIdentity');
+    setSelectedIdentity(identity);
+  }, []);
+
+  // If not Takshi, show access denied
+  if (selectedIdentity !== 'takshi') {
+    return (
+      <div className="container mx-auto px-4 py-12 max-w-2xl text-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-red-100 p-12">
+          <Shield className="w-16 h-16 mx-auto mb-6 text-red-500" />
+          <h2 className="text-3xl font-bold mb-4 text-red-600">
+            Access Denied
+          </h2>
+          <p className="text-muted-foreground mb-4 text-lg">
+            Only Takshi can access the admin panel
+          </p>
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-8">
+            <AlertCircle className="w-4 h-4" />
+            <span>Please select "Takshi" in Settings to access this page</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSave = async () => {
     if (!questionText.trim()) {
@@ -93,6 +121,18 @@ export default function AdminPanelPage() {
           </div>
         </div>
 
+        {/* Info Banner */}
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-900">
+            <p className="font-medium mb-1">Automatic Question Rotation</p>
+            <p className="text-blue-700">
+              Questions scheduled for future dates will automatically become active on their designated day. 
+              The system displays the earliest scheduled question as "today's question" when its date arrives.
+            </p>
+          </div>
+        </div>
+
         {/* Question Form */}
         <Card className="mb-6 border-purple-100">
           <CardHeader>
@@ -110,7 +150,9 @@ export default function AdminPanelPage() {
               )}
             </CardTitle>
             <CardDescription>
-              {editingQuestion ? 'Edit the scheduled question below' : 'Create a new question for a specific date'}
+              {editingQuestion 
+                ? 'Edit the scheduled question below' 
+                : 'Create a new question for a specific date - it will automatically appear on that day'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -199,7 +241,6 @@ export default function AdminPanelPage() {
                   question={question}
                   onEdit={handleEdit}
                   isEditing={editingQuestion?.id === question.id}
-                  isPast
                 />
               ))}
             </div>
@@ -214,34 +255,35 @@ interface QuestionCardProps {
   question: DailyCheckInQuestion;
   onEdit: (question: DailyCheckInQuestion) => void;
   isEditing: boolean;
-  isPast?: boolean;
 }
 
-function QuestionCard({ question, onEdit, isEditing, isPast }: QuestionCardProps) {
-  const date = new Date(Number(question.date) / 1000000);
-  const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+function QuestionCard({ question, onEdit, isEditing }: QuestionCardProps) {
+  const dateObj = new Date(Number(question.date) / 1000000);
+  const isPast = dateObj < new Date();
+  const isToday = format(dateObj, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
   return (
-    <Card className={`border-gray-200 ${isEditing ? 'ring-2 ring-purple-400' : ''} ${isPast ? 'opacity-60' : ''}`}>
+    <Card className={`border-2 transition-all ${isEditing ? 'border-purple-300 bg-purple-50/50' : 'border-gray-100 hover:border-purple-200'}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <span className={`text-sm font-medium ${isToday ? 'text-green-600' : 'text-muted-foreground'}`}>
-                {format(date, 'MMMM d, yyyy')}
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className={`text-sm font-medium ${isPast ? 'text-muted-foreground' : isToday ? 'text-green-600' : 'text-purple-600'}`}>
+                {format(dateObj, 'MMMM d, yyyy')}
               </span>
               {isToday && (
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
                   Today
                 </span>
               )}
-              {isPast && (
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+              {isPast && !isToday && (
+                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
                   Past
                 </span>
               )}
             </div>
-            <p className="text-foreground whitespace-pre-wrap">{question.question}</p>
+            <p className="text-foreground">{question.question}</p>
           </div>
           <Button
             onClick={() => onEdit(question)}

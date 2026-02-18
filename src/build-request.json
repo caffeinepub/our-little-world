@@ -1,106 +1,90 @@
 {
   "kind": "build_request",
-  "title": "Replace login with IP-based automatic user identification",
-  "projectName": "Takshi & Aashi",
+  "title": "Fix message sender display and enhance admin/daily question features",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove Internet Identity authentication system and all login/logout UI components",
+      "text": "Display 'Takshi' and 'Aashi' as sender names in chat messages instead of 'unknown'. When a message has no senderId or the senderId cannot be resolved to a profile, display the appropriate name based on the sender's identity (Takshi or Aashi).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-user-final"
         ],
         "quotes": [
-          "remove the login thingy"
+          "make sure not if instead of unknow when i send the message it should show takshi and aashi"
         ]
       },
       "acceptanceCriteria": [
-        "LoginButton component is removed or disabled",
-        "No login/logout buttons appear in the UI",
-        "Internet Identity authentication flow is no longer triggered"
+        "Chat messages display 'Takshi' or 'Aashi' as sender names",
+        "No messages show 'unknown' as the sender name",
+        "Sender name correctly reflects the user's identity selection"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Implement backend endpoint to detect and register new users by IP address, automatically creating a profile when a new IP is detected",
-      "target": "backend",
+      "text": "Apply the 'Takshi' and 'Aashi' sender name display logic consistently across all apps in the project (ChatPage, DailyCheckInPage, ReactionsPage, and any other pages that display user-generated content).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-user-final"
         ],
         "quotes": [
-          "just take the name when u think someone new joins with a new ip"
+          "this should be the case in all the apps"
         ]
       },
       "acceptanceCriteria": [
-        "Backend tracks user sessions by IP address",
-        "New IP addresses trigger automatic profile creation",
-        "Function returns existing profile for known IP addresses"
+        "All pages that display user content show 'Takshi' or 'Aashi' names",
+        "Consistent naming behavior across the entire application",
+        "No instances of 'unknown' or unresolved sender names anywhere"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update ProfileSetupModal to automatically prompt for name when a new IP address is detected, without requiring explicit login",
+      "text": "Restrict admin panel access exclusively to the user 'takshi'. Only Takshi should be able to access the admin panel page and see the admin panel navigation option.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-user-final"
         ],
         "quotes": [
-          "just take the name when u think someone new joins with a new ip"
+          "only takshi should have access to the admin pannel"
         ]
       },
       "acceptanceCriteria": [
-        "Modal appears automatically for new IP addresses",
-        "User can enter their name without logging in",
-        "Name is associated with the detected IP address"
+        "Admin panel is only accessible when localStorage identity is 'takshi'",
+        "Admin panel navigation card only appears for Takshi",
+        "Aashi cannot access or see the admin panel"
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Replace Principal-based user identification throughout the application with IP-based identification",
+      "text": "Implement automatic daily question generation or scheduling to ensure a new question appears every day. The system should either automatically create new questions or ensure that scheduled questions appear daily without manual intervention.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-user-final"
         ],
         "quotes": [
-          "just take the name when u think someone new joins with a new ip"
+          "new question every day"
         ]
       },
       "acceptanceCriteria": [
-        "All backend functions use IP address instead of Principal for user identification",
-        "All frontend queries and mutations use IP-based identification",
-        "Existing features (chat, notes, drawings, memories, reactions, daily check-ins) work with IP-based users"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Update admin authorization to work with IP-based identification instead of Principal-based authentication",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin access control functions use IP addresses",
-        "Admin panel remains accessible only to authorized IP addresses",
-        "Admin permissions are enforced correctly with new identification system"
+        "A new daily check-in question appears automatically each day",
+        "Users see a fresh question every 24 hours",
+        "The system handles question rotation without requiring manual admin updates"
       ]
     }
   ],
   "constraints": [
-    "Preserve all existing features (chat, drawings, notes, memories, reactions, daily check-ins, admin panel)",
-    "Maintain the single-actor backend architecture",
-    "Keep all immutable frontend paths unchanged (useInternetIdentity hooks, useActor, main.tsx, ui components)"
+    "Do not change the backend message schema or migration logic",
+    "Maintain the existing localStorage-based identity system for 'takshi' and 'aashi'",
+    "Preserve the current admin panel functionality while restricting access"
   ],
   "nonGoals": [
-    "Adding any additional authentication methods",
-    "Implementing session management beyond IP detection",
-    "Adding user registration forms beyond name collection"
+    "Changing the authentication or Internet Identity system",
+    "Modifying the backend authorization checks beyond what's needed for daily questions",
+    "Redesigning the user interface or navigation structure"
   ],
   "imageRequirements": {
     "required": [],

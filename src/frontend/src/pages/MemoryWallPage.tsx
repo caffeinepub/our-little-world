@@ -68,6 +68,14 @@ export default function MemoryWallPage() {
     }
   };
 
+  // Helper to get display name from localStorage
+  const getDisplayName = () => {
+    const identity = localStorage.getItem('selectedIdentity');
+    if (identity === 'takshi') return 'Takshi';
+    if (identity === 'aashi') return 'Aashi';
+    return 'Someone';
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-pink-100 p-6">
@@ -162,9 +170,12 @@ export default function MemoryWallPage() {
                 />
                 <div className="p-4">
                   <p className="font-medium mb-2">{memory.caption}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(Number(memory.timestamp) / 1000000), { addSuffix: true })}
-                  </p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>By {getDisplayName()}</span>
+                    <span>
+                      {formatDistanceToNow(new Date(Number(memory.timestamp) / 1000000), { addSuffix: true })}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))

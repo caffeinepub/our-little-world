@@ -23,80 +23,101 @@ export default function DailyNotesPage() {
   const uniqueAuthors = Array.from(new Set(notes.map((n) => n.authorId)));
   const { profileMap } = useUserProfiles(uniqueAuthors);
 
-  const handleAddNote = async () => {
-    if (!newNote.trim()) return;
+  // Helper to get display name with localStorage fallback
+  const getDisplayName = (principalStr: string) => {
+    const profile = profileMap.get(principalStr);
+    if (profile?.displayName) return profile.displayName;
+    
+    const identity = localStorage.getItem('selectedIdentity');
+    if (identity === 'takshi') return 'Takshi';
+    if (identity === 'aashi') return 'Aashi';
+    
+    return 'Unknown';
+  };
+
+  const handleSaveNew = async () => {
+    if (!newNote.trim()) {
+      toast.error('Please write something');
+      return;
+    }
 
     try {
-      const now = BigInt(Date.now() * 1000000);
-      await saveNote.mutateAsync({ content: newNote.trim(), date: now });
+      const today = startOfDay(new Date());
+      const timestamp = BigInt(today.getTime() * 1000000);
+      await saveNote.mutateAsync({ content: newNote.trim(), date: timestamp });
       setNewNote('');
-      toast.success('Note added! 📝');
+      toast.success('Note saved! 📝');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to add note');
+      toast.error(error.message || 'Failed to save note');
     }
   };
 
-  const handleStartEdit = (note: any) => {
-    setEditingId(note.id);
-    setEditContent(note.content);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingId || !editContent.trim()) return;
+  const handleUpdate = async (noteId: string) => {
+    if (!editContent.trim()) {
+      toast.error('Note cannot be empty');
+      return;
+    }
 
     try {
-      await updateNote.mutateAsync({ noteId: editingId, content: editContent.trim() });
+      await updateNote.mutateAsync({ noteId, content: editContent.trim() });
       setEditingId(null);
       setEditContent('');
-      toast.success('Note updated! ✨');
+      toast.success('Note updated! ✏️');
     } catch (error: any) {
       toast.error(error.message || 'Failed to update note');
     }
   };
 
-  const handleCancelEdit = () => {
+  const startEdit = (note: any) => {
+    setEditingId(note.id);
+    setEditContent(note.content);
+  };
+
+  const cancelEdit = () => {
     setEditingId(null);
     setEditContent('');
   };
 
-  // Group notes by day
+  // Group notes by date
   const groupedNotes = notes.reduce((acc, note) => {
-    const date = new Date(Number(note.date) / 1000000);
-    const dayKey = format(startOfDay(date), 'yyyy-MM-dd');
-    if (!acc[dayKey]) {
-      acc[dayKey] = [];
-    }
-    acc[dayKey].push(note);
+    const dateKey = format(new Date(Number(note.date) / 1000000), 'yyyy-MM-dd');
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(note);
     return acc;
   }, {} as Record<string, typeof notes>);
 
-  const sortedDays = Object.keys(groupedNotes).sort((a, b) => b.localeCompare(a));
+  const sortedDates = Object.keys(groupedNotes).sort((a, b) => b.localeCompare(a));
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-pink-100 p-6">
-        <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+        <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
           Daily Notes 📝
         </h2>
 
-        {/* Add Note */}
-        <div className="mb-6 space-y-3">
-          <Textarea
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-            placeholder="Write a sweet note..."
-            className="rounded-xl resize-none"
-            rows={3}
-          />
-          <Button
-            onClick={handleAddNote}
-            disabled={!newNote.trim() || saveNote.isPending}
-            className="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 rounded-xl"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {saveNote.isPending ? 'Adding...' : 'Add Note'}
-          </Button>
-        </div>
+        {/* New Note Input */}
+        <Card className="mb-6 border-blue-100">
+          <CardHeader>
+            <CardTitle className="text-lg">Today's Note</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Textarea
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              placeholder="Write a note for today..."
+              className="rounded-xl resize-none"
+              rows={4}
+            />
+            <Button
+              onClick={handleSaveNew}
+              disabled={!newNote.trim() || saveNote.isPending}
+              className="w-full bg-gradient-to-r from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 rounded-xl"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {saveNote.isPending ? 'Saving...' : 'Save Note'}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Notes List */}
         <div className="space-y-6">
@@ -104,88 +125,82 @@ export default function DailyNotesPage() {
             Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="w-full h-32 rounded-xl" />
             ))
-          ) : sortedDays.length === 0 ? (
+          ) : sortedDates.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              <p className="text-lg mb-2">No notes yet 💕</p>
-              <p className="text-sm">Start writing your thoughts!</p>
+              <p>No notes yet</p>
+              <p className="text-sm">Start writing your first note!</p>
             </div>
           ) : (
-            sortedDays.map((dayKey) => {
-              const dayNotes = groupedNotes[dayKey];
-              const date = new Date(dayKey);
-              const isToday = isSameDay(date, new Date());
+            sortedDates.map((dateKey) => (
+              <div key={dateKey}>
+                <h3 className="text-lg font-semibold mb-3 text-foreground">
+                  {format(new Date(dateKey), 'MMMM d, yyyy')}
+                </h3>
+                <div className="space-y-3">
+                  {groupedNotes[dateKey].map((note) => {
+                    const isEditing = editingId === note.id;
+                    const authorName = getDisplayName(note.authorId.toString());
+                    const isOwnNote = userProfile && note.authorId.toString() === userProfile.name;
 
-              return (
-                <div key={dayKey}>
-                  <h3 className="text-lg font-semibold mb-3 text-pink-600">
-                    {isToday ? 'Today' : format(date, 'MMMM d, yyyy')}
-                  </h3>
-                  <div className="space-y-3">
-                    {dayNotes.map((note) => {
-                      const isEditing = editingId === note.id;
-                      const authorProfile = profileMap.get(note.authorId.toString());
-                      const authorName = authorProfile?.displayName || 'Unknown';
-
-                      return (
-                        <Card key={note.id} className="border-pink-100">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-sm font-medium text-muted-foreground">
-                                {authorName}
-                              </CardTitle>
-                              {!isEditing && (
+                    return (
+                      <Card key={note.id} className="border-blue-100">
+                        <CardContent className="p-4">
+                          {isEditing ? (
+                            <div className="space-y-3">
+                              <Textarea
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                className="rounded-xl resize-none"
+                                rows={4}
+                              />
+                              <div className="flex gap-2">
                                 <Button
-                                  variant="ghost"
+                                  onClick={() => handleUpdate(note.id)}
+                                  disabled={updateNote.isPending}
                                   size="sm"
-                                  onClick={() => handleStartEdit(note)}
-                                  className="h-8 w-8 p-0 rounded-full"
+                                  className="bg-gradient-to-r from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 rounded-xl"
                                 >
-                                  <Edit2 className="w-4 h-4" />
+                                  <Check className="w-4 h-4 mr-1" />
+                                  Save
                                 </Button>
-                              )}
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            {isEditing ? (
-                              <div className="space-y-2">
-                                <Textarea
-                                  value={editContent}
-                                  onChange={(e) => setEditContent(e.target.value)}
-                                  className="rounded-xl resize-none"
-                                  rows={3}
-                                />
-                                <div className="flex gap-2">
-                                  <Button
-                                    onClick={handleSaveEdit}
-                                    disabled={!editContent.trim() || updateNote.isPending}
-                                    size="sm"
-                                    className="bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 rounded-xl"
-                                  >
-                                    <Check className="w-4 h-4 mr-1" />
-                                    Save
-                                  </Button>
-                                  <Button
-                                    onClick={handleCancelEdit}
-                                    variant="outline"
-                                    size="sm"
-                                    className="rounded-xl"
-                                  >
-                                    <X className="w-4 h-4 mr-1" />
-                                    Cancel
-                                  </Button>
-                                </div>
+                                <Button
+                                  onClick={cancelEdit}
+                                  variant="outline"
+                                  size="sm"
+                                  className="rounded-xl"
+                                >
+                                  <X className="w-4 h-4 mr-1" />
+                                  Cancel
+                                </Button>
                               </div>
-                            ) : (
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-muted-foreground">
+                                  {authorName}
+                                </span>
+                                {isOwnNote && (
+                                  <Button
+                                    onClick={() => startEdit(note)}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="rounded-full"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
                               <p className="whitespace-pre-wrap">{note.content}</p>
-                            )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
-              );
-            })
+              </div>
+            ))
           )}
         </div>
       </div>

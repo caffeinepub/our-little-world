@@ -27,7 +27,7 @@ actor {
 
   type Message = {
     id : Text;
-    senderId : Principal;
+    senderId : ?Principal;
     content : Text;
     timestamp : Time.Time;
     messageType : MessageType;
@@ -93,6 +93,7 @@ actor {
   var notes = Map.empty<Text, Note>();
   var memories = Map.empty<Text, Memory>();
   var questions = Map.empty<Text, DailyCheckInQuestion>();
+  var scheduledQuestions = Map.empty<Text, DailyCheckInQuestion>();
 
   var answers : [DailyAnswer] = [];
   var reactionHistory : [Reaction] = [];
@@ -140,7 +141,7 @@ actor {
     let messageId = generateId("msg");
     let message : Message = {
       id = messageId;
-      senderId = caller;
+      senderId = ?caller;
       content;
       timestamp = Time.now();
       messageType;
@@ -285,7 +286,9 @@ actor {
   };
 
   public query ({ caller }) func getReactionCounts() : async { hearts : Nat; hugs : Nat; kisses : Nat } {
-    // Public read access - no auth required
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view reaction counts");
+    };
     {
       hearts = heartsCount;
       hugs = hugsCount;
@@ -303,8 +306,8 @@ actor {
   // Daily Check-In Features
 
   public shared ({ caller }) func addDailyQuestion(question : Text, date : Time.Time) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can add questions");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can add questions");
     };
 
     let questionId = generateId("question");
@@ -343,6 +346,7 @@ actor {
     };
   };
 
+  // Method to get today's question, generating one from the schedule if needed
   public query ({ caller }) func getTodaysQuestion() : async ?DailyCheckInQuestion {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view questions");
@@ -354,6 +358,34 @@ actor {
       func(q) { q.date <= today + 86400 }
     );
     todaysQuestion;
+  };
+
+  // Method to force regenerate today's question from the schedule
+  public shared ({ caller }) func regenerateTodaysQuestion() : async ?DailyCheckInQuestion {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can regenerate questions");
+    };
+
+    let today = Time.now();
+
+    // Find the earliest scheduled question that is not in the past
+    let scheduledIter = scheduledQuestions.values();
+    let nextQuestion = scheduledIter.find(
+      func(q) { q.date >= today }
+    );
+
+    switch (nextQuestion) {
+      case (null) { null };
+      case (?question) {
+        // Add the question to the main questions map as today's question
+        questions.add(question.id, question);
+
+        // Remove it from the schedule
+        scheduledQuestions.remove(question.id);
+
+        ?question;
+      };
+    };
   };
 
   public query ({ caller }) func getQuestionById(questionId : Text) : async ?DailyCheckInQuestion {
@@ -368,6 +400,13 @@ actor {
       Runtime.trap("Unauthorized: Only users can view questions");
     };
     questions.values().toArray();
+  };
+
+  public query ({ caller }) func getAllScheduledQuestions() : async [DailyCheckInQuestion] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view scheduled questions");
+    };
+    scheduledQuestions.values().toArray();
   };
 
   public shared ({ caller }) func submitDailyAnswer(answer : Text, questionId : Text) : async () {

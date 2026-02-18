@@ -1,117 +1,104 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Replace login with IP-based automatic user identification",
+  "title": "Fix message sender display and enhance admin/daily question features",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove Internet Identity authentication system and all login/logout UI components",
+      "summary": "Display 'Takshi' and 'Aashi' as sender names in chat messages instead of 'unknown'",
       "acceptanceCriteria": [
-        "LoginButton component is removed or disabled",
-        "No login/logout buttons appear in the UI",
-        "Internet Identity authentication flow is no longer triggered"
+        "Chat messages display 'Takshi' or 'Aashi' as sender names",
+        "No messages show 'unknown' as the sender name",
+        "Sender name correctly reflects the user's identity selection"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/LoginButton.tsx",
-          "operation": "delete",
-          "description": "Remove the LoginButton component that provides Internet Identity login/logout functionality"
+          "path": "frontend/src/components/chat/ChatMessageItem.tsx",
+          "operation": "modify",
+          "description": "Update the message sender display logic to show 'Takshi' or 'Aashi' based on the localStorage identity value when a message has no senderId or the profile cannot be resolved. Read the identity from localStorage.getItem('selectedIdentity') and map 'takshi' to 'Takshi' and 'aashi' to 'Aashi'. Remove or replace any 'unknown' fallback text with the appropriate identity name."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Apply consistent 'Takshi' and 'Aashi' sender name display logic across all pages that show user-generated content",
+      "acceptanceCriteria": [
+        "All pages that display user content show 'Takshi' or 'Aashi' names",
+        "Consistent naming behavior across the entire application",
+        "No instances of 'unknown' or unresolved sender names anywhere"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/DailyCheckInPage.tsx",
+          "operation": "modify",
+          "description": "Update any user display logic to show 'Takshi' or 'Aashi' based on localStorage identity when displaying answer authors or user references. Ensure no 'unknown' text appears when showing who submitted answers."
         },
         {
-          "path": "frontend/src/components/AppShell.tsx",
+          "path": "frontend/src/pages/ReactionsPage.tsx",
           "operation": "modify",
-          "description": "Remove LoginButton import and usage from the header/navigation. Remove any authentication guards or checks that rely on Internet Identity state"
+          "description": "Update the recent reactions feed to display 'Takshi' or 'Aashi' based on localStorage identity when showing who sent reactions. Replace any 'unknown' fallback with the identity name derived from localStorage.getItem('selectedIdentity')."
         },
         {
-          "path": "frontend/src/pages/HomePage.tsx",
+          "path": "frontend/src/pages/DailyNotesPage.tsx",
           "operation": "modify",
-          "description": "Remove any references to authentication state that filter navigation cards or display login prompts"
+          "description": "Update note author display logic to show 'Takshi' or 'Aashi' based on localStorage identity when displaying note authors. Ensure consistent naming with no 'unknown' text."
+        },
+        {
+          "path": "frontend/src/pages/DoodlesPage.tsx",
+          "operation": "modify",
+          "description": "Update drawing author display logic to show 'Takshi' or 'Aashi' based on localStorage identity when displaying who created drawings. Remove any 'unknown' fallback text."
+        },
+        {
+          "path": "frontend/src/pages/MemoryWallPage.tsx",
+          "operation": "modify",
+          "description": "Update memory author display logic to show 'Takshi' or 'Aashi' based on localStorage identity when displaying photo captions or author information. Ensure no 'unknown' text appears."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Update ProfileSetupModal to automatically prompt for name when a new IP address is detected",
+      "summary": "Restrict admin panel access exclusively to the user 'takshi'",
       "acceptanceCriteria": [
-        "Modal appears automatically for new IP addresses",
-        "User can enter their name without logging in",
-        "Name is associated with the detected IP address"
+        "Admin panel is only accessible when localStorage identity is 'takshi'",
+        "Admin panel navigation card only appears for Takshi",
+        "Aashi cannot access or see the admin panel"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProfileSetupModal.tsx",
+          "path": "frontend/src/components/AppShell.tsx",
           "operation": "modify",
-          "description": "Update modal to trigger based on IP detection instead of Internet Identity authentication. Remove any authentication checks and allow profile creation without login. Update the modal's visibility logic to check for null user profile from IP-based backend response"
+          "description": "Add a route guard for the /admin route that checks localStorage.getItem('selectedIdentity') === 'takshi'. If not takshi, redirect to the home page or show an access denied message. This ensures the admin panel route is only accessible to Takshi."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/HomePage.tsx",
           "operation": "modify",
-          "description": "Update useGetCallerUserProfile hook to work with IP-based identification. Remove dependency on Internet Identity actor state and instead call backend immediately when actor is available. Adjust the enabled condition to not require authentication state"
+          "description": "Update the admin panel navigation card visibility logic to only show when localStorage.getItem('selectedIdentity') === 'takshi'. The card should not appear at all for Aashi or any other identity."
+        },
+        {
+          "path": "frontend/src/pages/AdminPanelPage.tsx",
+          "operation": "modify",
+          "description": "Add a client-side check at the component mount to verify localStorage.getItem('selectedIdentity') === 'takshi'. If not, show an access denied message or redirect to home. This provides an additional safeguard even if the route guard is bypassed."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Replace Principal-based user identification throughout the application with IP-based identification",
+      "summary": "Implement automatic daily question generation to ensure a new question appears every day",
       "acceptanceCriteria": [
-        "All frontend queries and mutations use IP-based identification",
-        "Existing features (chat, notes, drawings, memories, reactions, daily check-ins) work with IP-based users"
+        "A new daily check-in question appears automatically each day",
+        "Users see a fresh question every 24 hours",
+        "The system handles question rotation without requiring manual admin updates"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useActor.ts",
-          "operation": "modify",
-          "description": "Update actor initialization to work without Internet Identity. Remove dependency on identity from useInternetIdentity hook. Configure actor to use anonymous identity or remove authentication requirements entirely. Remove the automatic admin initialization logic that depends on authenticated principals"
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update all query hooks to remove authentication checks and enable queries immediately when actor is available. Remove identity-based conditional logic from hooks for messages, drawings, notes, memories, reactions, and daily check-ins. Update mutation hooks to work without caller principal validation"
-        },
-        {
-          "path": "frontend/src/components/AppShell.tsx",
-          "operation": "modify",
-          "description": "Remove isAuthenticated checks and identity-based conditional rendering. Allow all users to access app pages without authentication guards. Update profile setup modal trigger to rely solely on profile existence check rather than authentication state"
-        },
-        {
-          "path": "frontend/src/pages/ChatPage.tsx",
-          "operation": "modify",
-          "description": "Remove identity-based sender identification logic. Update message sending to work without explicit authentication. Ensure user profiles display correctly with IP-based identification"
-        },
-        {
-          "path": "frontend/src/pages/DailyNotesPage.tsx",
-          "operation": "modify",
-          "description": "Remove principal-based author checks for note editing. Update authorization logic to work with IP-based identification from backend"
-        },
-        {
           "path": "frontend/src/pages/DailyCheckInPage.tsx",
           "operation": "modify",
-          "description": "Remove authentication-based submission checks. Allow answer submission to work with IP-based identification"
-        },
-        {
-          "path": "frontend/src/pages/MemoryWallPage.tsx",
-          "operation": "modify",
-          "description": "Update memory upload to work without explicit authentication. Remove any principal-based validation"
-        },
-        {
-          "path": "frontend/src/pages/ReactionsPage.tsx",
-          "operation": "modify",
-          "description": "Update reaction sending to work with IP-based identification. Remove authentication checks"
-        },
-        {
-          "path": "frontend/src/pages/DoodlesPage.tsx",
-          "operation": "modify",
-          "description": "Update drawing save functionality to work with IP-based identification. Remove authentication requirements"
+          "description": "Add logic to check if today's question exists when the page loads. If getTodaysQuestion returns null and the user is viewing the current day, display a message indicating no question is available for today. Add a UI hint suggesting that scheduled questions can be set up in the admin panel (visible only to Takshi). This provides frontend feedback for the automatic question rotation system."
         },
         {
           "path": "frontend/src/pages/AdminPanelPage.tsx",
           "operation": "modify",
-          "description": "Update admin panel access control to work with IP-based authorization. Remove principal-based admin checks and rely on backend IP-based authorization"
-        },
-        {
-          "path": "frontend/src/hooks/useUserProfiles.ts",
-          "operation": "modify",
-          "description": "Update profile fetching to work with IP-based user identification. Ensure getUserProfile calls work correctly with IP-based principals"
+          "description": "Enhance the scheduled questions interface to make it clear that questions scheduled for future dates will automatically become active on their designated day. Add helper text explaining that the system will automatically rotate questions based on their scheduled dates. Consider adding a visual indicator showing which question is scheduled for today and upcoming days."
         }
       ]
     }

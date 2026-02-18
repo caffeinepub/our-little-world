@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, Clock, Lock, Unlock } from 'lucide-react';
+import { CheckCircle, Clock, Lock, Unlock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -28,6 +28,19 @@ export default function DailyCheckInPage() {
   const hasSubmitted = !!answersData?.currentUserAnswer;
   const otherHasSubmitted = !!answersData?.otherUserAnswer;
   const bothSubmitted = hasSubmitted && otherHasSubmitted;
+
+  // Helper to get display name with localStorage fallback
+  const getDisplayName = (principalStr: string) => {
+    const profile = profileMap.get(principalStr);
+    if (profile?.displayName) return profile.displayName;
+    
+    // Fallback to localStorage identity
+    const identity = localStorage.getItem('selectedIdentity');
+    if (identity === 'takshi') return 'Takshi';
+    if (identity === 'aashi') return 'Aashi';
+    
+    return 'Unknown';
+  };
 
   const handleSubmit = async () => {
     if (!answer.trim()) {
@@ -57,6 +70,10 @@ export default function DailyCheckInPage() {
     .filter((id) => id !== questionId)
     .slice(0, 10); // Show last 10
 
+  // Check if user is Takshi for admin hint
+  const userIdentity = localStorage.getItem('selectedIdentity');
+  const isTakshi = userIdentity === 'takshi';
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-pink-100 p-6">
@@ -82,7 +99,19 @@ export default function DailyCheckInPage() {
             ) : todaysQuestion ? (
               <p className="text-lg font-medium text-foreground mb-4">{todaysQuestion.question}</p>
             ) : (
-              <p className="text-muted-foreground">No question available for today</p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-4 rounded-xl border border-amber-200">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <div>
+                    <p className="font-medium">No question available for today</p>
+                    {isTakshi && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Visit the Admin Panel to schedule questions for upcoming days
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Answer Input */}
@@ -116,10 +145,10 @@ export default function DailyCheckInPage() {
                 <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-4 border border-pink-100">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 flex items-center justify-center text-white font-semibold text-sm">
-                      {profileMap.get(answersData.currentUserAnswer!.user.toString())?.displayName?.[0] || 'Y'}
+                      {getDisplayName(answersData.currentUserAnswer!.user.toString())[0]}
                     </div>
                     <span className="font-medium text-sm">
-                      {profileMap.get(answersData.currentUserAnswer!.user.toString())?.displayName || 'You'}
+                      {getDisplayName(answersData.currentUserAnswer!.user.toString())}
                     </span>
                   </div>
                   <p className="whitespace-pre-wrap">{answersData.currentUserAnswer!.answer}</p>
@@ -130,10 +159,10 @@ export default function DailyCheckInPage() {
                   <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-white font-semibold text-sm">
-                        {profileMap.get(answersData.otherUserAnswer!.user.toString())?.displayName?.[0] || '?'}
+                        {getDisplayName(answersData.otherUserAnswer!.user.toString())[0]}
                       </div>
                       <span className="font-medium text-sm">
-                        {profileMap.get(answersData.otherUserAnswer!.user.toString())?.displayName || 'Partner'}
+                        {getDisplayName(answersData.otherUserAnswer!.user.toString())}
                       </span>
                     </div>
                     <p className="whitespace-pre-wrap">{answersData.otherUserAnswer!.answer}</p>
@@ -189,6 +218,18 @@ function PastQuestionCard({ questionId, profileMap }: { questionId: string; prof
   const { data: answersData } = useGetAnswersForQuestion(questionId);
   const bothSubmitted = !!answersData?.currentUserAnswer && !!answersData?.otherUserAnswer;
 
+  // Helper to get display name with localStorage fallback
+  const getDisplayName = (principalStr: string) => {
+    const profile = profileMap.get(principalStr);
+    if (profile?.displayName) return profile.displayName;
+    
+    const identity = localStorage.getItem('selectedIdentity');
+    if (identity === 'takshi') return 'Takshi';
+    if (identity === 'aashi') return 'Aashi';
+    
+    return 'Unknown';
+  };
+
   return (
     <Card className="border-gray-200">
       <CardHeader className="pb-3">
@@ -202,7 +243,7 @@ function PastQuestionCard({ questionId, profileMap }: { questionId: string; prof
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg p-3 border border-pink-100">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-medium text-xs">
-                  {profileMap.get(answersData.currentUserAnswer!.user.toString())?.displayName || 'You'}
+                  {getDisplayName(answersData.currentUserAnswer!.user.toString())}
                 </span>
               </div>
               <p className="text-sm whitespace-pre-wrap line-clamp-2">{answersData.currentUserAnswer!.answer}</p>
@@ -210,7 +251,7 @@ function PastQuestionCard({ questionId, profileMap }: { questionId: string; prof
             <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-3 border border-blue-100">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-medium text-xs">
-                  {profileMap.get(answersData.otherUserAnswer!.user.toString())?.displayName || 'Partner'}
+                  {getDisplayName(answersData.otherUserAnswer!.user.toString())}
                 </span>
               </div>
               <p className="text-sm whitespace-pre-wrap line-clamp-2">{answersData.otherUserAnswer!.answer}</p>

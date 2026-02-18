@@ -22,6 +22,14 @@ export default function ReactionsPage() {
     }
   };
 
+  // Helper to get display name from localStorage
+  const getDisplayName = () => {
+    const identity = localStorage.getItem('selectedIdentity');
+    if (identity === 'takshi') return 'Takshi';
+    if (identity === 'aashi') return 'Aashi';
+    return 'Someone';
+  };
+
   const reactions = [
     { type: ReactionType.heart, emoji: '💕', label: 'Heart', color: 'from-pink-400 to-rose-400', count: counts?.hearts },
     { type: ReactionType.hug, emoji: '🤗', label: 'Hug', color: 'from-purple-400 to-indigo-400', count: counts?.hugs },
@@ -80,6 +88,7 @@ export default function ReactionsPage() {
               recentReactions.map((reaction, index) => {
                 const emoji = reaction.type === ReactionType.heart ? '💕' : reaction.type === ReactionType.hug ? '🤗' : '💋';
                 const label = reaction.type === ReactionType.heart ? 'Heart' : reaction.type === ReactionType.hug ? 'Hug' : 'Kiss';
+                const senderName = getDisplayName();
                 
                 return (
                   <div
@@ -88,7 +97,7 @@ export default function ReactionsPage() {
                   >
                     <span className="text-2xl">{emoji}</span>
                     <div className="flex-1">
-                      <p className="font-medium text-sm">Sent a {label}</p>
+                      <p className="font-medium text-sm">{senderName} sent a {label}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(Number(reaction.timestamp) / 1000000), { addSuffix: true })}
                       </p>

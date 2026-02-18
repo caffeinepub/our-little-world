@@ -54,7 +54,7 @@ export const Message = IDL.Record({
   'content' : IDL.Text,
   'messageType' : MessageType,
   'timestamp' : Time,
-  'senderId' : IDL.Principal,
+  'senderId' : IDL.Opt(IDL.Principal),
 });
 export const Note = IDL.Record({
   'id' : IDL.Text,
@@ -120,6 +120,11 @@ export const idlService = IDL.Service({
   'getAllMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
   'getAllNotes' : IDL.Func([], [IDL.Vec(Note)], ['query']),
   'getAllQuestions' : IDL.Func([], [IDL.Vec(DailyCheckInQuestion)], ['query']),
+  'getAllScheduledQuestions' : IDL.Func(
+      [],
+      [IDL.Vec(DailyCheckInQuestion)],
+      ['query'],
+    ),
   'getAnsweredDays' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'getAnswersForQuestion' : IDL.Func(
       [IDL.Text],
@@ -165,6 +170,11 @@ export const idlService = IDL.Service({
     ),
   'hasSubmittedAnswer' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'regenerateTodaysQuestion' : IDL.Func(
+      [],
+      [IDL.Opt(DailyCheckInQuestion)],
+      [],
+    ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'saveDrawing' : IDL.Func([IDL.Text], [IDL.Text], []),
   'saveMemory' : IDL.Func([ExternalBlob, IDL.Text], [IDL.Text], []),
@@ -224,7 +234,7 @@ export const idlFactory = ({ IDL }) => {
     'content' : IDL.Text,
     'messageType' : MessageType,
     'timestamp' : Time,
-    'senderId' : IDL.Principal,
+    'senderId' : IDL.Opt(IDL.Principal),
   });
   const Note = IDL.Record({
     'id' : IDL.Text,
@@ -294,6 +304,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(DailyCheckInQuestion)],
         ['query'],
       ),
+    'getAllScheduledQuestions' : IDL.Func(
+        [],
+        [IDL.Vec(DailyCheckInQuestion)],
+        ['query'],
+      ),
     'getAnsweredDays' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'getAnswersForQuestion' : IDL.Func(
         [IDL.Text],
@@ -339,6 +354,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'hasSubmittedAnswer' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'regenerateTodaysQuestion' : IDL.Func(
+        [],
+        [IDL.Opt(DailyCheckInQuestion)],
+        [],
+      ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'saveDrawing' : IDL.Func([IDL.Text], [IDL.Text], []),
     'saveMemory' : IDL.Func([ExternalBlob, IDL.Text], [IDL.Text], []),

@@ -65,7 +65,7 @@ export interface Message {
     content: string;
     messageType: MessageType;
     timestamp: Time;
-    senderId: Principal;
+    senderId?: Principal;
 }
 export interface Reaction {
     userId: Principal;
@@ -91,6 +91,7 @@ export interface backendInterface {
     getAllMessages(): Promise<Array<Message>>;
     getAllNotes(): Promise<Array<Note>>;
     getAllQuestions(): Promise<Array<DailyCheckInQuestion>>;
+    getAllScheduledQuestions(): Promise<Array<DailyCheckInQuestion>>;
     getAnsweredDays(): Promise<Array<string>>;
     getAnswersForQuestion(questionId: string): Promise<{
         currentUserAnswer?: DailyAnswer;
@@ -110,6 +111,7 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     hasSubmittedAnswer(questionId: string): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
+    regenerateTodaysQuestion(): Promise<DailyCheckInQuestion | null>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveDrawing(drawingData: string): Promise<string>;
     saveMemory(photo: ExternalBlob, caption: string): Promise<string>;

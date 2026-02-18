@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import { MessageCircle, Palette, StickyNote, Image, Heart, Settings, CheckCircle, Shield } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useGetCallerUserProfile, useIsAdmin } from '../hooks/useQueries';
+import { useGetCallerUserProfile } from '../hooks/useQueries';
 
 type Page = 'home' | 'chat' | 'doodles' | 'notes' | 'memories' | 'reactions' | 'settings' | 'checkin' | 'admin';
 
@@ -10,7 +11,36 @@ interface HomePageProps {
 
 export default function HomePage({ onNavigate }: HomePageProps) {
   const { data: userProfile } = useGetCallerUserProfile();
-  const { data: isAdmin = false } = useIsAdmin();
+  const [selectedIdentity, setSelectedIdentity] = useState<string | null>(null);
+
+  // Load selected identity from localStorage
+  useEffect(() => {
+    const identity = localStorage.getItem('selectedIdentity');
+    setSelectedIdentity(identity);
+
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      const newIdentity = localStorage.getItem('selectedIdentity');
+      setSelectedIdentity(newIdentity);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom event for same-tab updates
+    const handleIdentityChange = () => {
+      const newIdentity = localStorage.getItem('selectedIdentity');
+      setSelectedIdentity(newIdentity);
+    };
+    window.addEventListener('identityChanged', handleIdentityChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('identityChanged', handleIdentityChange);
+    };
+  }, []);
+
+  // Check if user can access admin panel (must be Takshi)
+  const canAccessAdmin = selectedIdentity === 'takshi';
 
   const sections = [
     { id: 'checkin' as Page, label: 'Daily Check-In', icon: CheckCircle, color: 'from-green-400 to-emerald-400', emoji: '✅', adminOnly: false },
@@ -23,7 +53,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
     { id: 'settings' as Page, label: 'Settings', icon: Settings, color: 'from-gray-400 to-slate-400', emoji: '⚙️', adminOnly: false },
   ];
 
-  const visibleSections = sections.filter(section => !section.adminOnly || isAdmin);
+  const visibleSections = sections.filter(section => !section.adminOnly || canAccessAdmin);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">

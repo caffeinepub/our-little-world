@@ -21,8 +21,14 @@ export default function ChatPage() {
   const { data: userProfile } = useGetCallerUserProfile();
   const sendMessage = useSendMessage();
 
-  // Get unique senders from messages
-  const uniqueSenders = Array.from(new Set(messages.map((m) => m.senderId)));
+  // Get unique senders from messages, filtering out undefined
+  const uniqueSenders = Array.from(
+    new Set(
+      messages
+        .map((m) => m.senderId)
+        .filter((senderId): senderId is NonNullable<typeof senderId> => senderId !== undefined)
+    )
+  );
   const { profileMap } = useUserProfiles(uniqueSenders);
 
   // Auto-scroll to bottom
@@ -106,8 +112,8 @@ export default function ChatPage() {
             </div>
           ) : (
             displayMessages.map((msg) => {
-              const isOwn = userProfile && msg.senderId.toString() === userProfile.name;
-              const senderProfile = profileMap.get(msg.senderId.toString());
+              const isOwn = userProfile && msg.senderId && msg.senderId.toString() === userProfile.name;
+              const senderProfile = msg.senderId ? profileMap.get(msg.senderId.toString()) : undefined;
               return (
                 <ChatMessageItem
                   key={msg.id}
