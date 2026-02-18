@@ -1,0 +1,70 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-remove-internet-identity-authentication-system-and-all-login-logout-ui-components",
+      "featureTitle": "Remove Internet Identity authentication system and all login/logout UI components",
+      "files": [
+        "frontend/src/components/AppShell.tsx",
+        "frontend/src/components/LoginButton.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-profilesetupmodal-to-automatically-prompt-for-name-when-a-new-ip-address-is-detected-without-requiring-explicit-login",
+      "featureTitle": "Update ProfileSetupModal to automatically prompt for name when a new IP address is detected, without requiring explicit login",
+      "files": [
+        "frontend/src/components/ProfileSetupModal.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-replace-principal-based-user-identification-throughout-the-application-with-ip-based-identification",
+      "featureTitle": "Replace Principal-based user identification throughout the application with IP-based identification",
+      "files": [
+        "frontend/src/components/AppShell.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/ChatPage.tsx",
+        "frontend/src/pages/DailyNotesPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

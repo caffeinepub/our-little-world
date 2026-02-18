@@ -1,0 +1,119 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Replace login with IP-based automatic user identification",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Remove Internet Identity authentication system and all login/logout UI components",
+      "acceptanceCriteria": [
+        "LoginButton component is removed or disabled",
+        "No login/logout buttons appear in the UI",
+        "Internet Identity authentication flow is no longer triggered"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/LoginButton.tsx",
+          "operation": "delete",
+          "description": "Remove the LoginButton component that provides Internet Identity login/logout functionality"
+        },
+        {
+          "path": "frontend/src/components/AppShell.tsx",
+          "operation": "modify",
+          "description": "Remove LoginButton import and usage from the header/navigation. Remove any authentication guards or checks that rely on Internet Identity state"
+        },
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Remove any references to authentication state that filter navigation cards or display login prompts"
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Update ProfileSetupModal to automatically prompt for name when a new IP address is detected",
+      "acceptanceCriteria": [
+        "Modal appears automatically for new IP addresses",
+        "User can enter their name without logging in",
+        "Name is associated with the detected IP address"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProfileSetupModal.tsx",
+          "operation": "modify",
+          "description": "Update modal to trigger based on IP detection instead of Internet Identity authentication. Remove any authentication checks and allow profile creation without login. Update the modal's visibility logic to check for null user profile from IP-based backend response"
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update useGetCallerUserProfile hook to work with IP-based identification. Remove dependency on Internet Identity actor state and instead call backend immediately when actor is available. Adjust the enabled condition to not require authentication state"
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Replace Principal-based user identification throughout the application with IP-based identification",
+      "acceptanceCriteria": [
+        "All frontend queries and mutations use IP-based identification",
+        "Existing features (chat, notes, drawings, memories, reactions, daily check-ins) work with IP-based users"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Update actor initialization to work without Internet Identity. Remove dependency on identity from useInternetIdentity hook. Configure actor to use anonymous identity or remove authentication requirements entirely. Remove the automatic admin initialization logic that depends on authenticated principals"
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update all query hooks to remove authentication checks and enable queries immediately when actor is available. Remove identity-based conditional logic from hooks for messages, drawings, notes, memories, reactions, and daily check-ins. Update mutation hooks to work without caller principal validation"
+        },
+        {
+          "path": "frontend/src/components/AppShell.tsx",
+          "operation": "modify",
+          "description": "Remove isAuthenticated checks and identity-based conditional rendering. Allow all users to access app pages without authentication guards. Update profile setup modal trigger to rely solely on profile existence check rather than authentication state"
+        },
+        {
+          "path": "frontend/src/pages/ChatPage.tsx",
+          "operation": "modify",
+          "description": "Remove identity-based sender identification logic. Update message sending to work without explicit authentication. Ensure user profiles display correctly with IP-based identification"
+        },
+        {
+          "path": "frontend/src/pages/DailyNotesPage.tsx",
+          "operation": "modify",
+          "description": "Remove principal-based author checks for note editing. Update authorization logic to work with IP-based identification from backend"
+        },
+        {
+          "path": "frontend/src/pages/DailyCheckInPage.tsx",
+          "operation": "modify",
+          "description": "Remove authentication-based submission checks. Allow answer submission to work with IP-based identification"
+        },
+        {
+          "path": "frontend/src/pages/MemoryWallPage.tsx",
+          "operation": "modify",
+          "description": "Update memory upload to work without explicit authentication. Remove any principal-based validation"
+        },
+        {
+          "path": "frontend/src/pages/ReactionsPage.tsx",
+          "operation": "modify",
+          "description": "Update reaction sending to work with IP-based identification. Remove authentication checks"
+        },
+        {
+          "path": "frontend/src/pages/DoodlesPage.tsx",
+          "operation": "modify",
+          "description": "Update drawing save functionality to work with IP-based identification. Remove authentication requirements"
+        },
+        {
+          "path": "frontend/src/pages/AdminPanelPage.tsx",
+          "operation": "modify",
+          "description": "Update admin panel access control to work with IP-based authorization. Remove principal-based admin checks and rely on backend IP-based authorization"
+        },
+        {
+          "path": "frontend/src/hooks/useUserProfiles.ts",
+          "operation": "modify",
+          "description": "Update profile fetching to work with IP-based user identification. Ensure getUserProfile calls work correctly with IP-based principals"
+        }
+      ]
+    }
+  ]
+}

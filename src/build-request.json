@@ -1,0 +1,109 @@
+{
+  "kind": "build_request",
+  "title": "Replace login with IP-based automatic user identification",
+  "projectName": "Takshi & Aashi",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Remove Internet Identity authentication system and all login/logout UI components",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "remove the login thingy"
+        ]
+      },
+      "acceptanceCriteria": [
+        "LoginButton component is removed or disabled",
+        "No login/logout buttons appear in the UI",
+        "Internet Identity authentication flow is no longer triggered"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement backend endpoint to detect and register new users by IP address, automatically creating a profile when a new IP is detected",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "just take the name when u think someone new joins with a new ip"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend tracks user sessions by IP address",
+        "New IP addresses trigger automatic profile creation",
+        "Function returns existing profile for known IP addresses"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update ProfileSetupModal to automatically prompt for name when a new IP address is detected, without requiring explicit login",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "just take the name when u think someone new joins with a new ip"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Modal appears automatically for new IP addresses",
+        "User can enter their name without logging in",
+        "Name is associated with the detected IP address"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Replace Principal-based user identification throughout the application with IP-based identification",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "just take the name when u think someone new joins with a new ip"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All backend functions use IP address instead of Principal for user identification",
+        "All frontend queries and mutations use IP-based identification",
+        "Existing features (chat, notes, drawings, memories, reactions, daily check-ins) work with IP-based users"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Update admin authorization to work with IP-based identification instead of Principal-based authentication",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin access control functions use IP addresses",
+        "Admin panel remains accessible only to authorized IP addresses",
+        "Admin permissions are enforced correctly with new identification system"
+      ]
+    }
+  ],
+  "constraints": [
+    "Preserve all existing features (chat, drawings, notes, memories, reactions, daily check-ins, admin panel)",
+    "Maintain the single-actor backend architecture",
+    "Keep all immutable frontend paths unchanged (useInternetIdentity hooks, useActor, main.tsx, ui components)"
+  ],
+  "nonGoals": [
+    "Adding any additional authentication methods",
+    "Implementing session management beyond IP detection",
+    "Adding user registration forms beyond name collection"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

@@ -1,2 +1,3 @@
-# our-little-world
-Exported from Caffeine project: Our Little World
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

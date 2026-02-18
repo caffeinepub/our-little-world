@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Application with simplified user identification by IP address without explicit login",
+  "architectural_notes": [
+    "IP-based user identification instead of traditional login system",
+    "Prompt for name on first visit from new IP address"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-remove-internet-identity-authentication-system-and-all-login-logout-ui-components",
+      "title": "Remove Internet Identity authentication system and all login/logout UI components",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-profilesetupmodal-to-automatically-prompt-for-name-when-a-new-ip-address-is-detected-without-requiring-explicit-login",
+      "title": "Update ProfileSetupModal to automatically prompt for name when a new IP address is detected, without requiring explicit login",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-principal-based-user-identification-throughout-the-application-with-ip-based-identification",
+      "title": "Replace Principal-based user identification throughout the application with IP-based identification",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Replace login system with IP-based user identification",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Implement backend endpoint to detect and register new users by IP address, automatically creating a profile when a new IP is detected",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Update admin authorization to work with IP-based identification instead of Principal-based authentication",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Takshi & Aashi",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}
